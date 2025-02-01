@@ -1,20 +1,22 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useState } from "react";
+// import { StatusBar } from "expo-status-bar";
+import { NavigationContainer } from "@react-navigation/native";
+import AppNavigator from "./app/navigation/AppNavigator";
+import AudioProvider from "./app/context/AudioProvider";
+import { View } from "react-native";
+import AudioListItem from "./app/components/AudioListItem";
 
 export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
-}
+  // const  [isModalVisible, setIsModalVisible] = useState(false);
+  return <AudioProvider>
+  <NavigationContainer>
+    <AppNavigator />
+  </NavigationContainer>
+  </AudioProvider>
+  // return (
+  // <View style={{ marginTop: 50}}>
+  //   <AudioListItem />
+  // </View>
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+  // );
+};
