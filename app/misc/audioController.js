@@ -48,3 +48,28 @@ export const playNext = async (playbackObj, uri) => {
         console.log("error inside play next audio", error.message);
     }
 };
+
+// rewind audio to start
+export const rewind = async playbackObj => {
+    try {
+        await playbackObj.setPositionAsync(0);
+        const status = await playbackObj.getStatusAsync();
+        console.log("playback status after rewind:", status);
+        return status;
+    } catch (error) {
+        console.log("error rewinding audio", error.message);
+    }
+};
+
+// play previous audio
+export const playPrevious = async (playbackObj, uri) => {
+    try {
+        await playbackObj.stopAsync();
+        await playbackObj.unloadAsync();
+        const status = await play(playbackObj, uri);
+        console.log("playback status after play previous:", await playbackObj.getStatusAsync());
+        return status;
+    } catch (error) {
+        console.log("error playing previous audio", error.message);
+    }
+};

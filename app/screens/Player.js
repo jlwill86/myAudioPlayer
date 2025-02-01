@@ -1,11 +1,11 @@
-import React, { useContext } from 'react';
+import React, { useContext, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import color from '../misc/color';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
 import PlayerButton from '../components/PlayerButton';
 import { AudioContext } from '../context/AudioProvider';
-import { pause, resume, playNext } from '../misc/audioController';
+import { pause, resume, playNext, rewind, playPrevious } from '../misc/audioController';
 
 const { width } = Dimensions.get('window');
 
@@ -18,6 +18,8 @@ const formatTime = (milliseconds) => {
 const Player = () => {
   const context = useContext(AudioContext);
   const { playbackPosition, playbackDuration, isPlaying, currentAudioIndex, totalAudioCount, currentAudio, playbackObj, audioFiles, updateState } = context;
+  const [lastTapTime, setLastTapTime] = useState(0);
+  const DOUBLE_TAP_DELAY = 300; // 300ms window for double tap
 
   const calculateSeekBar = () => {
     if (playbackPosition !== null && playbackDuration !== null) {
@@ -50,16 +52,46 @@ const Player = () => {
   };
 
   const handlePrev = async () => {
-    const prevAudioIndex = currentAudioIndex - 1;
-    if (prevAudioIndex < 0) return;
-    const audio = audioFiles[prevAudioIndex];
-    const status = await playNext(playbackObj, audio.uri);
-    updateState(context, {
-      soundObj: status,
-      currentAudio: audio,
-      isPlaying: true,
-      currentAudioIndex: prevAudioIndex,
-    });
+    const currentTime = new Date().getTime();
+    const tapLength = currentTime - lastTapTime;
+
+    if (playbackPosition > 5000) { // More than 5 seconds into song
+      if (tapLength < DOUBLE_TAP_DELAY) {
+        // Double tap - play previous song
+        const prevAudioIndex = currentAudioIndex - 1;
+        if (prevAudioIndex < 0) return;
+        
+        const audio = audioFiles[prevAudioIndex];
+        const status = await playPrevious(playbackObj, audio.uri);
+        updateState(context, {
+          soundObj: status,
+          currentAudio: audio,
+          isPlaying: true,
+          currentAudioIndex: prevAudioIndex,
+        });
+      } else {
+        // Single tap - restart current song
+        const status = await rewind(playbackObj);
+        updateState(context, {
+          soundObj: status,
+        });
+      }
+    } else { // 5 seconds or less into song
+      // Play previous song
+      const prevAudioIndex = currentAudioIndex - 1;
+      if (prevAudioIndex < 0) return;
+      
+      const audio = audioFiles[prevAudioIndex];
+      const status = await playPrevious(playbackObj, audio.uri);
+      updateState(context, {
+        soundObj: status,
+        currentAudio: audio,
+        isPlaying: true,
+        currentAudioIndex: prevAudioIndex,
+      });
+    }
+
+    setLastTapTime(currentTime);
   };
 
   return (
